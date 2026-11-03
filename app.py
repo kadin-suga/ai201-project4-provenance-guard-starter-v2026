@@ -30,7 +30,9 @@ from flask import Flask, jsonify, request
 
 import audit
 import config
-
+import detector
+import scoring
+import stylometry
 app = Flask(__name__)
 
 
@@ -199,17 +201,83 @@ def submit():
     what should this do when `text` is missing, empty, or enormous? A crash on
     a malformed input is one of the most common real failures there is.
     """
-    payload = request.get_json(silent=True) or {}
+    if not request.is_json:
+        return jsonify({
+            "error": "invalid_request",
+            "message": "Content-Type must be application/json.",
+        }), 415
 
-    # TODO: delete this and build the route.
+    payload = request.get_json(silent=True)
+
+    if payload is None:
+        return jsonify({
+            "error": "malformed_json",
+            "message": (
+                "The request body contains malformed JSON. Keep JSON strings "
+                "on one line or encode line breaks as \\n."
+            ),
+        }), 400
+
+    if not isinstance(payload, dict):
+        return jsonify({
+            "error": "invalid_request",
+            "message": "The request body must be a JSON object.",
+        }), 400
+
+    text = payload.get("text")
+    creator_id = payload.get("creator_id")
+
+    if not isinstance(text, str) or not text.strip():
+        return jsonify({
+            "error": "invalid_request",
+            "message": "text must be a nonblank string.",
+        }), 400
+
+    if not isinstance(creator_id, str) or not creator_id.strip():
+        return jsonify({
+            "error": "invalid_request",
+            "message": "creator_id must be a nonblank string.",
+        }), 400
+
+    try:
+        model_score = detector.model_signal(text)
+        style_score = stylometry.style_signal(text)
+        confidence = scoring.combine_signals(model_score, style_score)
+    except ValueError as exc:
+        return jsonify({
+            "error": "text_too_short",
+            "message": str(exc),
+        }), 400
+    except detector.DetectorUnavailable as exc:
+        return jsonify({
+            "error": "detector_unavailable",
+            "message": str(exc),
+        }), 503
+
+    content_id = str(uuid.uuid4())
+
+    guess = "pending"
+    label = "Pending the second signal and final label mapping."
+
+    audit.log_decision(
+        content_id=content_id,
+        creator_id=creator_id,
+        guess=guess,
+        model_score=model_score,
+        style_score=style_score,
+        combined_score=confidence,
+        label=label,
+        status="decided",
+    )
+
     return jsonify({
-        "error": "not_implemented",
-        "message": "POST /submit isn't built yet — see the TODO in app.py.",
-        "you_sent": {
-            "text_length": len(payload.get("text", "")),
-            "creator_id": payload.get("creator_id"),
-        },
-    }), 501
+        "content_id": content_id,
+        "guess": guess,
+        "confidence": confidence,
+        "label": label,
+        "model_score": model_score,
+        "style_score": style_score,
+    }), 200
 
 
 @app.post("/appeal")

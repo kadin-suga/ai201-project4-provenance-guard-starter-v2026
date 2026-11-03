@@ -45,11 +45,11 @@ Two things worth knowing before you pick numbers:
 ## 1.
 
 <!-- Your criterion. It must name a number. -->
-
+Of 10 pieces of genuine human writing, no more than 1 will be labeled ai in each evaluation trial.
 
 
 **Why this target:**
-
+A false accusation can harm a real writer more than allowing one AI-generated  submission through. Ten samples provide a meaningful test without making the evaluation too large.
 
 
 ---
@@ -57,11 +57,13 @@ Two things worth knowing before you pick numbers:
 ## 2.
 
 <!-- Your criterion. -->
-
+Across 5 clearly human and 5 clearly AI-generated samples, the AI samples’ average confidence score will be at least 0.25 higher than the human samples’ average in every trial.
 
 
 **Why this target:**
+The two groups should produce meaningfully different scores, not merely land on   opposite sides of a threshold by a tiny amount. A 0.25 gap leaves room for an unsure region.
 
+Remember that this project’s confidence means the combined AI-likelihood score: higher is more AI-like.
 
 
 ---
@@ -69,11 +71,11 @@ Two things worth knowing before you pick numbers:
 ## 3.
 
 <!-- Your criterion. -->
-
+A fixed calibration set of at least 6 submissions will produce at least one human, one unsure, and one ai result in every trial.
 
 
 **Why this target:**
-
+All three labels need to be reachable. If one never appears, the thresholds or scoring range are not functioning as intended.
 
 
 ---
@@ -81,11 +83,11 @@ Two things worth knowing before you pick numbers:
 ## 4.
 
 <!-- Your criterion. -->
-
+All 5 valid appeals will return HTTP 200, report status under_review, and create an appeal log entry with the matching content_id.
 
 
 **Why this target:**
-
+An appeal is the writer’s protection against a false positive. It must work every time and leave auditable evidence.
 
 
 ---
@@ -93,11 +95,11 @@ Two things worth knowing before you pick numbers:
 ## 5.
 
 <!-- Your criterion. -->
-
+All 5 invalid requests—missing text, blank text,non-string text, malformed JSON, and text longer than 10,000 characters—will return a documented 4xx JSON error, and none will produce a 500 response.
 
 
 **Why this target:**
-
+Bad input should be rejected predictably rather than crashing the service or   producing a meaningless detection result. The 10,000-character limit makes the handling of enormous submissions explicit.
 
 
 ---

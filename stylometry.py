@@ -64,8 +64,21 @@ def sentence_length_spread(text: str) -> float:
     `stdev` raises on fewer than two values. Decide what that should return
     before the attack set decides for you.
     """
-    # TODO: replace this
-    return 0.0
+    lengths = [
+        len(words(sentence))
+        for sentence in sentences(text)
+        if words(sentence)
+    ]
+    
+    if len(lengths) < 2:
+        return 0.0
+    
+    mean_length = statistics.mean(lengths)
+    if mean_length == 0:
+        return 0.0
+    
+    return round(statistics.stdev(lengths) /
+    mean_length, 4)
 
 
 def type_token_ratio(text: str) -> float:
@@ -81,8 +94,12 @@ def type_token_ratio(text: str) -> float:
     that alone can look like a signal.
     """
     # TODO: replace this
-    return 0.0
+    tokens = words(text)
 
+    if not tokens:
+        return 0.0
+
+    return round(len(set(tokens)) / len(tokens), 4)
 
 def punctuation_density(text: str) -> float:
     """
@@ -95,8 +112,12 @@ def punctuation_density(text: str) -> float:
         writers.
     """
     # TODO: replace this
-    return 0.0
+    if not text:
+        return 0.0
 
+    punctuation_count = len(re.findall(r"[^\w\s]",
+    text))
+    return round(punctuation_count / len(text), 4)
 
 # ── Combining them ───────────────────────────────────────────────────────────
 
@@ -123,8 +144,28 @@ def style_signal(text: str) -> float:
     to signal one, and it is plain writing that gets accused.
     """
     # TODO: replace this
-    return 0.5
+    spread = sentence_length_spread(text)
+    vocabulary = type_token_ratio(text)
+    punctuation = punctuation_density(text)
 
+    # Convert each measurement to 0–1, with higher meaning more AI-like.
+    # These calibration points are starting assumptions.
+    spread_ai = 1.0 - min(spread / 0.75, 1.0)
+
+    vocabulary_scaled = (vocabulary - 0.35) / 0.45
+    vocabulary_ai = 1.0 - min(max(vocabulary_scaled,
+    0.0), 1.0)
+
+    punctuation_ai = 1.0 - min(punctuation / 0.08,
+    1.0)
+
+    score = (
+        0.50 * spread_ai
+        + 0.30 * vocabulary_ai
+        + 0.20 * punctuation_ai
+    )
+
+    return round(min(max(score, 0.0), 1.0), 4)
 
 if __name__ == "__main__":
     import sys

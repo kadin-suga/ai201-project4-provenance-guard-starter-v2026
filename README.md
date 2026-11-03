@@ -39,7 +39,13 @@
 <!-- The path a submission takes, from arriving to the label a reader sees.
      Six or seven steps — this is the trace you wrote in Milestone 1. -->
 
-
+1. A client sends text and a creator_id to POST /submit.
+2. app.py validates the request and creates a unique content_id.
+3. detector.py measures how predictable the text is and produces model_score.
+4. stylometry.py measures sentence, vocabulary, and punctuation patterns and produces style_score.
+5. scoring.py combines both signals into one AI-likelihood score.
+6. scoring.py converts that score into a guess and a reader-facing label.
+7. audit.py records the decision, and the service returns the result as JSON.
 
 ---
 
@@ -54,14 +60,19 @@
 ### Signal one — the model signal
 
 **What it measures:**
+How predictable the text is to a local GPT-2 model.
 
 **Why that might differ between human and AI writing:**
+AI-generated text often uses likely next words, making it easier for a language model to predict.
 
 **What it can't see:**
+It cannot associate identity authorship to the words in the text. Plain human writing can be predictable, while unusual AI writing can be unpredictable.
+
 
 ### Signal two — the style signal
 
 **What it measures:**
+
 
 **Why that might differ between human and AI writing:**
 
