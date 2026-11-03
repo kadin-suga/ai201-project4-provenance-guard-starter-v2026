@@ -60,23 +60,36 @@
 ### Signal one — the model signal
 
 **What it measures:**
-How predictable the text is to a local GPT-2 model.
+How predictable the text is to a local GPT-2 model. Lower perplexity becomes
+a higher model score, where higher means more AI-like.
 
 **Why that might differ between human and AI writing:**
-AI-generated text often uses likely next words, making it easier for a language model to predict.
+AI-generated text often uses likely next words, making it easier for a language
+model to predict. Human writing may contain more unexpected wording, details,
+or transitions.
 
 **What it can't see:**
-It cannot associate identity authorship to the words in the text. Plain human writing can be predictable, while unusual AI writing can be unpredictable.
-
+It cannot determine authorship. Plain human writing can be predictable, while
+AI writing with unusual or rare language can be unpredictable. It also reads
+only the first 400 model tokens.
 
 ### Signal two — the style signal
 
 **What it measures:**
-
+It measures sentence-length variation, vocabulary diversity, and punctuation
+density without interpreting meaning. Sentence-length variation contributes
+50%, vocabulary diversity contributes 30%, and punctuation density contributes
+20%.
 
 **Why that might differ between human and AI writing:**
+Generated writing often uses more regular sentence lengths, repeated
+vocabulary, and predictable punctuation. Human writing may be structurally
+less regular.
 
 **What it can't see:**
+It cannot understand meaning or determine authorship. Sentence splitting,
+punctuation edits, typos, or quotations can change the score without changing
+the underlying ideas. Vocabulary diversity also changes with text length.
 
 ### The combining rule
 
@@ -84,8 +97,14 @@ It cannot associate identity authorship to the words in the text. Plain human wr
      signals disagree? -->
 
 **The rule:**
+The system takes an equal-weighted average of the model and style signals.
+When they disagree, the average moves toward the unsure range instead of
+allowing either signal to make the decision alone.
 
 **The numbers:**
+The model signal has weight 0.50 and the style signal has weight 0.50. Scores
+at or below 0.35 are human, scores at or above 0.65 are AI, and scores between
+those thresholds are unsure.
 
 **Where it lives:** `scoring.py::combine_signals`
 
@@ -94,7 +113,9 @@ It cannot associate identity authorship to the words in the text. Plain human wr
 
 **A case where my two signals split, and what my rule does with it:**
 
-
+My formal-human sample received a model score of 0.2749 and a style score of
+0.5899. The combined score was 0.4324. Because the signals disagreed, the
+equal-weighted average placed it in the unsure range.
 
 ---
 
@@ -107,15 +128,17 @@ It cannot associate identity authorship to the words in the text. Plain human wr
 
 | Label | Score range | The exact text a reader sees |
 |---|---|---|
-| high-confidence human |  |  |
-| unsure |  |  |
-| high-confidence AI |  |  |
+| high-confidence human | 0.00–0.35, inclusive | Our signals suggest this was probably written by a person. |
+| unsure | above 0.35 and below 0.65 | Our signals could not reliably determine how this text was written. |
+| high-confidence AI | 0.65–1.00, inclusive | Our signals found patterns associated with AI-generated text. This is not proof of authorship, and the writer may request a review. |
 
 **Why I worded the "unsure" one this way:**
 <!-- It's the hardest of the three. It has to admit uncertainty without
      sounding like an accusation, because the person reading it may well have
      written every word themselves. -->
-
+I worded the unsure label around the limits of the automated checks rather than
+suggesting that the writer did something wrong. It admits that the result is
+inconclusive without making an accusation.
 
 
 ---
@@ -133,35 +156,69 @@ It cannot associate identity authorship to the words in the text. Plain human wr
      diagnostics. -->
 
 ```bash
-$ curl -X POST http://127.0.0.1:5000/submit \
+$ curl -X POST http://127.0.0.1:5010/submit \
   -H "Content-Type: application/json" \
-  -d '{"text": "...", "creator_id": "..."}'
+  -d '{"text":"The system provides useful results for users. The system processes each request in a consistent manner. The system records each result for future reference. The system also provides clear feedback to users. These features help the system operate effectively and reliably.","creator_id":"sample-writer"}'
 ```
 
 ```json
-
+{
+  "confidence": 0.6606,
+  "content_id": "46194169-7131-4d9c-9e00-f26d96234d0b",
+  "guess": "ai",
+  "label": "Our signals found patterns associated with AI-generated text. This is not proof of authorship, and the writer may request a review.",
+  "model_score": 0.6737,
+  "style_score": 0.6475
+}
 ```
 
 **An appeal**
 
 ```bash
-$ curl -X POST http://127.0.0.1:5000/appeal \
+$ curl -X POST http://127.0.0.1:5010/appeal \
   -H "Content-Type: application/json" \
-  -d '{"content_id": "...", "reasoning": "..."}'
+  -d '{"content_id":"46194169-7131-4d9c-9e00-f26d96234d0b","reasoning":"I wrote this text myself and would like the result reviewed."}'
 ```
 
 ```json
-
+{
+  "content_id": "46194169-7131-4d9c-9e00-f26d96234d0b",
+  "message": "Your appeal has been recorded for review.",
+  "status": "under_review"
+}
 ```
 
 **What the log shows afterwards**
 
 ```bash
-$ curl "http://127.0.0.1:5000/log?limit=3"
+$ curl "http://127.0.0.1:5010/log?limit=3"
 ```
 
 ```json
-
+{
+  "count": 2,
+  "entries": [
+    {
+      "combined_score": 0.6606,
+      "content_id": "46194169-7131-4d9c-9e00-f26d96234d0b",
+      "creator_id": "sample-writer",
+      "guess": "ai",
+      "label": "Our signals found patterns associated with AI-generated text. This is not proof of authorship, and the writer may request a review.",
+      "model_score": 0.6737,
+      "status": "decided",
+      "style_score": 0.6475,
+      "timestamp": "2026-11-03T03:58:25+00:00"
+    },
+    {
+      "content_id": "46194169-7131-4d9c-9e00-f26d96234d0b",
+      "creator_id": "sample-writer",
+      "event": "appeal",
+      "reasoning": "I wrote this text myself and would like the result reviewed.",
+      "status": "under_review",
+      "timestamp": "2026-11-03T03:58:28+00:00"
+    }
+  ]
+}
 ```
 
 ---
@@ -170,15 +227,23 @@ $ curl "http://127.0.0.1:5000/log?limit=3"
 
 **Moment 1**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* I asked why `/submit` rejected a multiline curl request
+  and requested a review of the route.
+- *What came back:* AI identified literal newlines inside the JSON string and
+  suggested distinguishing malformed JSON, non-object JSON, and incorrect
+  content types.
+- *What I changed:* I kept strict JSON parsing, added specific error responses,
+  and used escaped newlines instead of silently rewriting malformed input.
 
 **Moment 2**
 
-- *What I asked for:*
-- *What came back:*
-- *What I changed:*
+- *What I asked for:* I asked how `scoring.py::combine_signals` should be built
+  and integrated into the submission pipeline.
+- *What came back:* AI explained the file-and-function notation and proposed a
+  weighted-average path from both signals to the label and audit log.
+- *What I changed:* I chose equal model and style weights, recorded both signal
+  scores and their combined score, and connected the combined score to the
+  reader-facing label.
 
 <!-- ═══════════════════════ UNIT 8 — THE TEST ═══════════════════════ -->
 

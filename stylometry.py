@@ -64,21 +64,17 @@ def sentence_length_spread(text: str) -> float:
     `stdev` raises on fewer than two values. Decide what that should return
     before the attack set decides for you.
     """
-    lengths = [
-        len(words(sentence))
-        for sentence in sentences(text)
-        if words(sentence)
-    ]
-    
+    lengths = [len(words(sentence)) for sentence in sentences(text)]
+    lengths = [length for length in lengths if length]
+
     if len(lengths) < 2:
         return 0.0
-    
+
     mean_length = statistics.mean(lengths)
     if mean_length == 0:
         return 0.0
-    
-    return round(statistics.stdev(lengths) /
-    mean_length, 4)
+
+    return round(statistics.stdev(lengths) / mean_length, 4)
 
 
 def type_token_ratio(text: str) -> float:
@@ -93,13 +89,13 @@ def type_token_ratio(text: str) -> float:
     directly comparable on it, and if your test inputs vary a lot in length,
     that alone can look like a signal.
     """
-    # TODO: replace this
     tokens = words(text)
 
     if not tokens:
         return 0.0
 
     return round(len(set(tokens)) / len(tokens), 4)
+
 
 def punctuation_density(text: str) -> float:
     """
@@ -111,13 +107,12 @@ def punctuation_density(text: str) -> float:
         more interesting than full stops, because they vary more between
         writers.
     """
-    # TODO: replace this
     if not text:
         return 0.0
 
-    punctuation_count = len(re.findall(r"[^\w\s]",
-    text))
+    punctuation_count = len(re.findall(r"[^\w\s]", text))
     return round(punctuation_count / len(text), 4)
+
 
 # ── Combining them ───────────────────────────────────────────────────────────
 
@@ -143,7 +138,6 @@ def style_signal(text: str) -> float:
     you trust it. Plain and ordinary, not formal: formal prose reads as *human*
     to signal one, and it is plain writing that gets accused.
     """
-    # TODO: replace this
     spread = sentence_length_spread(text)
     vocabulary = type_token_ratio(text)
     punctuation = punctuation_density(text)
@@ -153,11 +147,9 @@ def style_signal(text: str) -> float:
     spread_ai = 1.0 - min(spread / 0.75, 1.0)
 
     vocabulary_scaled = (vocabulary - 0.35) / 0.45
-    vocabulary_ai = 1.0 - min(max(vocabulary_scaled,
-    0.0), 1.0)
+    vocabulary_ai = 1.0 - min(max(vocabulary_scaled, 0.0), 1.0)
 
-    punctuation_ai = 1.0 - min(punctuation / 0.08,
-    1.0)
+    punctuation_ai = 1.0 - min(punctuation / 0.08, 1.0)
 
     score = (
         0.50 * spread_ai
@@ -166,6 +158,7 @@ def style_signal(text: str) -> float:
     )
 
     return round(min(max(score, 0.0), 1.0), 4)
+
 
 if __name__ == "__main__":
     import sys

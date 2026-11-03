@@ -33,6 +33,7 @@ import config
 import detector
 import scoring
 import stylometry
+
 app = Flask(__name__)
 
 
@@ -241,8 +242,6 @@ def submit():
 
     try:
         model_score = detector.model_signal(text)
-        style_score = stylometry.style_signal(text)
-        confidence = scoring.combine_signals(model_score, style_score)
     except ValueError as exc:
         return jsonify({
             "error": "text_too_short",
@@ -254,10 +253,12 @@ def submit():
             "message": str(exc),
         }), 503
 
+    style_score = stylometry.style_signal(text)
+    confidence = scoring.combine_signals(model_score, style_score)
+
     content_id = str(uuid.uuid4())
 
-    guess = "pending"
-    label = "Pending the second signal and final label mapping."
+    guess, label = scoring.score_to_label(confidence)
 
     audit.log_decision(
         content_id=content_id,
@@ -300,14 +301,65 @@ def appeal():
     to the person on the other end. It's the only thing standing between a
     wrong accusation and nothing at all.
     """
-    payload = request.get_json(silent=True) or {}
+    if not request.is_json:
+        return jsonify({
+            "error": "invalid_request",
+            "message": "Content-Type must be application/json.",
+        }), 415
 
-    # TODO: delete this and build the route.
+    payload = request.get_json(silent=True)
+
+    if payload is None:
+        return jsonify({
+            "error": "malformed_json",
+            "message": "The request body contains malformed JSON.",
+        }), 400
+
+    if not isinstance(payload, dict):
+        return jsonify({
+            "error": "invalid_request",
+            "message": "The request body must be a JSON object.",
+        }), 400
+
+    content_id = payload.get("content_id")
+    reasoning = payload.get("reasoning")
+
+    if not isinstance(content_id, str) or not content_id.strip():
+        return jsonify({
+            "error": "invalid_request",
+            "message": "content_id must be a nonblank string.",
+        }), 400
+
+    if not isinstance(reasoning, str) or not reasoning.strip():
+        return jsonify({
+            "error": "invalid_request",
+            "message": "reasoning must be a nonblank string.",
+        }), 400
+
+    content_id = content_id.strip()
+    entries = audit.entries_for(content_id)
+    decision = next(
+        (entry for entry in entries if entry.get("status") == "decided"),
+        None,
+    )
+
+    if decision is None:
+        return jsonify({
+            "error": "content_not_found",
+            "message": "No submission exists with that content_id.",
+        }), 404
+
+    appeal_entry = audit.log_appeal(
+        content_id=content_id,
+        creator_id=decision["creator_id"],
+        reasoning=reasoning.strip(),
+    )
+
     return jsonify({
-        "error": "not_implemented",
-        "message": "POST /appeal isn't built yet — see the TODO in app.py.",
-        "you_sent": payload,
-    }), 501
+        "content_id": content_id,
+        "status": appeal_entry["status"],
+        "message": "Your appeal has been recorded for review.",
+    }), 200
 
 
 # ── Already works ─────────────────────────────────────────────────────────────
