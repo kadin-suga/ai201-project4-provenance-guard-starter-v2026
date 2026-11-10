@@ -342,13 +342,7 @@ def appeal():
         (entry for entry in entries if entry.get("status") == "decided"),
         None,
     )
-    content_id = f"c_{uuid.uuid4().hex[:12]}"
-    audit.log_decision(
-        content_id=content_id,
-        creator_id=creator_id,
-        model_score=model_score,
-        status="decided",
-    )
+
     if decision is None:
         return jsonify({
             "error": "content_not_found",
