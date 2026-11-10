@@ -42,7 +42,7 @@ for _stream in (sys.stdout, sys.stderr):
 DEFAULT_URL = f"http://{config.HOST}:{config.PORT}"
 
 
-def bodies_for(scenario):
+def cases_for(scenario):
     """
     The request bodies one scenario sends.
 
@@ -50,20 +50,37 @@ def bodies_for(scenario):
     sent exactly as written, which is how a bad-input criterion says things a
     string can't — no `text` field, a null, something enormous.
     """
-    if scenario.get("bodies"):
-        return list(scenario["bodies"])
+    if scenario.get("requests"):
+        return list(scenario["requests"])
     return [
-        {"text": text, "creator_id": f"eval_{scenario['name'][:12]}_{i}"}
+        {"json": {"text": text,
+                  "creator_id": f"eval_{scenario['criterion']}_{i}"},
+         "description": text[:70]}
         for i, text in enumerate(scenario["texts"], 1)
     ]
 
 
-def describe(body):
+def describe(case):
     """A short, readable note of what was sent — for the report."""
-    if set(body) == {"text", "creator_id"} and isinstance(body.get("text"), str):
+    if case.get("description"):
+        return case["description"]
+    body = case.get("json")
+    if isinstance(body, dict) and set(body) == {"text", "creator_id"} and isinstance(body.get("text"), str):
         text = body["text"]
         return text[:70] if text else "(empty text)"
-    return json.dumps(body)[:120]
+    return json.dumps(body if body is not None else case.get("raw"))[:120]
+
+
+def send_case(requests, base_url, case, timeout):
+    """Send either normal JSON or deliberately malformed raw input."""
+    if "raw" in case:
+        return requests.post(
+            f"{base_url}/submit",
+            data=case["raw"].encode("utf-8"),
+            headers={"Content-Type": case.get("content_type", "application/json")},
+            timeout=timeout,
+        )
+    return requests.post(f"{base_url}/submit", json=case["json"], timeout=timeout)
 
 
 def main():
@@ -113,13 +130,12 @@ def main():
         trials = []
         for trial in range(1, args.trials + 1):
             results = []
-            for i, body in enumerate(bodies_for(scenario), 1):
-                preview = describe(body)
+            for i, case in enumerate(cases_for(scenario), 1):
+                preview = describe(case)
                 try:
-                    response = requests.post(f"{args.url}/submit", json=body,
-                                             timeout=args.timeout)
+                    response = send_case(requests, args.url, case, args.timeout)
                     payload = response.json() if response.content else {}
-                    results.append({
+                    result = {
                         "status": response.status_code,
                         "guess": payload.get("guess"),
                         "confidence": payload.get("confidence"),
@@ -127,7 +143,33 @@ def main():
                         "style_score": payload.get("style_score"),
                         "label": payload.get("label"),
                         "sent": preview,
-                    })
+                    }
+
+                    if scenario.get("action") == "appeal":
+                        content_id = payload.get("content_id")
+                        appeal = requests.post(
+                            f"{args.url}/appeal",
+                            json={"content_id": content_id,
+                                  "reasoning": "Evaluation of the appeal path."},
+                            timeout=args.timeout,
+                        )
+                        appeal_payload = appeal.json() if appeal.content else {}
+                        log_payload = requests.get(
+                            f"{args.url}/log", timeout=args.timeout
+                        ).json()
+                        matching = [
+                            entry for entry in log_payload.get("entries", [])
+                            if entry.get("content_id") == content_id
+                            and entry.get("event") == "appeal"
+                            and entry.get("status") == "under_review"
+                        ]
+                        result["appeal"] = {
+                            "status": appeal.status_code,
+                            "content_id": appeal_payload.get("content_id"),
+                            "review_status": appeal_payload.get("status"),
+                            "logged": bool(matching),
+                        }
+                    results.append(result)
                 except Exception as exc:  # noqa: BLE001
                     results.append({"status": None, "error": f"{type(exc).__name__}: {exc}",
                                     "sent": preview})

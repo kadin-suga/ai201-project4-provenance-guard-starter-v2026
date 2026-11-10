@@ -19,7 +19,7 @@ ROOT = Path(__file__).parent
 # traffic from outside the box, and that means `0.0.0.0`. Setting the env var
 # is how you get it; the default keeps your local `curl` commands unchanged.
 HOST = os.getenv("HOST", "127.0.0.1")
-PORT = int(os.getenv("PORT", "5010"))
+PORT = int(os.getenv("PORT", "5000"))
 
 # Flask's debug mode gives anyone who can reach the service an interactive
 # Python prompt inside your process. Fine on loopback, a gift to strangers
@@ -92,10 +92,10 @@ AI_THRESHOLD = 0.65
 # an hour, and a script sending a thousand variations to map your thresholds.
 # Your README has to say why your numbers and not others.
 
-RATE_LIMITING_ENABLED = os.getenv("AI201_RATE_LIMITS", "0") == "1"
+RATE_LIMITING_ENABLED = os.getenv("AI201_RATE_LIMITS", "1") == "1"
 
-RATE_LIMIT_PER_MINUTE = 10
-RATE_LIMIT_PER_DAY = 200
+RATE_LIMIT_PER_MINUTE = 5
+RATE_LIMIT_PER_DAY = 50
 
 # Flask-Limiter warns loudly without this. In-memory is right for one laptop
 # and wrong for anything real — a restart forgets every count, and two copies

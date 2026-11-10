@@ -154,7 +154,7 @@ def health():
 # ── YOU BUILD THIS ────────────────────────────────────────────────────────────
 
 @app.post("/submit")
-# @limiter.limit(f"{config.RATE_LIMIT_PER_MINUTE}/minute;{config.RATE_LIMIT_PER_DAY}/day")
+@limiter.limit(f"{config.RATE_LIMIT_PER_MINUTE}/minute;{config.RATE_LIMIT_PER_DAY}/day")
 def submit():
     """
     Take a piece of text, decide about it, log the decision, answer.
@@ -342,7 +342,13 @@ def appeal():
         (entry for entry in entries if entry.get("status") == "decided"),
         None,
     )
-
+    content_id = f"c_{uuid.uuid4().hex[:12]}"
+    audit.log_decision(
+        content_id=content_id,
+        creator_id=creator_id,
+        model_score=model_score,
+        status="decided",
+    )
     if decision is None:
         return jsonify({
             "error": "content_not_found",
