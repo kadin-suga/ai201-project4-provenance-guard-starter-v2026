@@ -108,3 +108,11 @@ RATE_LIMIT_STORAGE = "memory://"
 LOG_DIR = ROOT / "logs"
 AUDIT_LOG = LOG_DIR / "audit.jsonl"
 RESULTS_DIR = ROOT / "results"
+
+
+DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_POOL_MIN = int(os.getenv("DATABASE_POOL_MIN", "1"))
+DATABASE_POOL_MAX = int(os.getenv("DATABASE_POOL_MAX", "5"))
+JOB_LEASE_SECONDS = int(os.getenv("JOB_LEASE_SECONDS", "300"))
+JOB_POLL_SECONDS = float(os.getenv("JOB_POLL_SECONDS", "0.5"))
+MAX_JOB_TEXT_CHARS = int(os.getenv("MAX_JOB_TEXT_CHARS", "50000"))

@@ -26,10 +26,11 @@ Routes:
 
 import uuid
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, url_for
 
 import audit
 import config
+import database
 import detector
 import scoring
 import stylometry
@@ -379,6 +380,107 @@ def get_log():
     return jsonify({"count": len(entries), "entries": entries})
 
 
+@app.post("/jobs")
+@limiter.limit(f"{config.RATE_LIMIT_PER_MINUTE}/minute;{config.RATE_LIMIT_PER_DAY}/day")
+def create_job():
+    """Validate a submission, persist it, and return without running GPT-2."""
+    if not request.is_json:
+        return jsonify({
+            "error": "invalid_request",
+            "message": "Content-Type must be application/json.",
+        }), 415
+
+    payload = request.get_json(silent=True)
+    if payload is None:
+        return jsonify({
+            "error": "malformed_json",
+            "message": "The request body contains malformed JSON.",
+        }), 400
+    if not isinstance(payload, dict):
+        return jsonify({
+            "error": "invalid_request",
+            "message": "The request body must be a JSON object.",
+        }), 400
+
+    text = payload.get("text")
+    creator_id = payload.get("creator_id")
+    if not isinstance(text, str) or not text.strip():
+        return jsonify({
+            "error": "invalid_request",
+            "message": "text must be a nonblank string.",
+        }), 400
+    if len(text) > config.MAX_JOB_TEXT_CHARS:
+        return jsonify({
+            "error": "text_too_large",
+            "message": f"text must be at most {config.MAX_JOB_TEXT_CHARS} characters.",
+        }), 413
+    if not isinstance(creator_id, str) or not creator_id.strip():
+        return jsonify({
+            "error": "invalid_request",
+            "message": "creator_id must be a nonblank string.",
+        }), 400
+
+    try:
+        job = database.create_job(
+            creator_id=creator_id.strip(),
+            text=text.strip(),
+        )
+    except database.DatabaseUnavailable:
+        return jsonify({
+            "error": "database_unavailable",
+            "message": "The submission queue is temporarily unavailable.",
+        }), 503
+
+    status_url = url_for("get_job", job_id=job["job_id"])
+    response = jsonify({
+        "job_id": job["job_id"],
+        "status": job["status"],
+        "status_url": status_url,
+    })
+    response.status_code = 202
+    response.headers["Location"] = status_url
+    return response
+
+
+@app.get("/jobs/<uuid:job_id>")
+def get_job(job_id):
+    """Return queue state or the completed analysis result for one job."""
+    try:
+        job = database.get_job(job_id)
+    except database.DatabaseUnavailable:
+        return jsonify({
+            "error": "database_unavailable",
+            "message": "The submission queue is temporarily unavailable.",
+        }), 503
+
+    if job is None:
+        return jsonify({
+            "error": "job_not_found",
+            "message": "No analysis job exists with that job_id.",
+        }), 404
+
+    response = {
+        "job_id": job["job_id"],
+        "status": job["status"],
+        "attempts": job["attempts"],
+        "created_at": job["created_at"],
+        "started_at": job["started_at"],
+        "completed_at": job["completed_at"],
+    }
+    if job["status"] == "completed":
+        response.update({
+            "model_score": job["model_score"],
+            "style_score": job["style_score"],
+            "confidence": job["confidence"],
+            "guess": job["guess"],
+            "label": job["label"],
+        })
+    elif job["status"] == "failed":
+        response["message"] = "Analysis could not be completed."
+
+    return jsonify(response)
+
+
 def main():
     print(f"Provenance Guard on http://{config.HOST}:{config.PORT}")
     print(f"  detector model:  {config.DETECTOR_MODEL}")
@@ -392,7 +494,6 @@ def main():
     print()
     # debug=True hands out an interactive debugger, so it's local-only — see config.py
     app.run(host=config.HOST, port=config.PORT, debug=config.DEBUG)
-
 
 if __name__ == "__main__":
     main()
