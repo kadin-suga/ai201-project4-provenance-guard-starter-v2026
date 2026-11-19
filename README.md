@@ -265,6 +265,9 @@ $ curl "http://127.0.0.1:5010/log?limit=3"
 
 **My limits:** 5 per minute, 50 per day
 
+Rate-limit counters are stored in Redis rather than process memory, so API
+processes share one limit and restarting the API does not erase the counters.
+
 **Why those numbers and not others:** Five submissions per minute permits a
 writer to correct and retry several times, but stops a rapid script after a
 small sample. Fifty per day permits normal class use while making large-scale

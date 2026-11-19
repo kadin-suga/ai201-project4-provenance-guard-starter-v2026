@@ -3,8 +3,13 @@
 Everything about how the starter works.
 
 This is a **web service**. It runs on your machine and you talk to it with
-`curl` from another terminal. If you've not built a backend before, that's
-assumed — the starter ships one that already answers.
+`curl` from another terminal. It now supports two analysis paths:
+
+- `POST /submit` runs analysis inside the HTTP request and returns the result.
+- `POST /jobs` places work in PostgreSQL so a separate worker can process it.
+
+The queued path is the preferred path when analysis should survive restarts,
+retry failures, or be shared across multiple workers.
 
 ---
 
@@ -32,15 +37,34 @@ That downloads about 550 MB and scores a sample.
 
 ---
 
-## Your first five minutes
+## Start the complete queued service
 
-Two terminals. In the first:
+Start PostgreSQL and Redis first:
 
 ```bash
+docker compose up -d postgres redis
+docker compose ps
+```
+
+Both services should report `healthy`. Load the database settings from `.env`
+in each terminal before starting Python.
+
+In terminal 1, start the API:
+
+```bash
+set -a; source .env; set +a
 python app.py
 ```
 
-In the second:
+In terminal 2, start the worker:
+
+```bash
+set -a; source .env; set +a
+python worker.py
+```
+
+The worker loads GPT-2 once, then continues polling for queued jobs. In
+terminal 3, check the API:
 
 ```bash
 curl -X POST http://127.0.0.1:5000/ping \
@@ -68,7 +92,7 @@ sent it data, it sent something back.
 `/ping` still answers: if it does, the problem is in your handler; if it
 doesn't, it's the service itself, and that's a help-channel question.
 
-Then try the route you're going to build:
+The original synchronous route still works:
 
 ```bash
 curl -X POST http://127.0.0.1:5000/submit \
@@ -76,8 +100,8 @@ curl -X POST http://127.0.0.1:5000/submit \
   -d '{"text": "some writing", "creator_id": "me"}'
 ```
 
-It returns a `501` saying it isn't built yet. **That's the correct starting
-position.**
+It runs the detector during the request and returns the completed scores. For
+the background-worker version, use `/jobs` as shown below.
 
 ---
 
@@ -88,8 +112,10 @@ position.**
 | `POST /ping` | **works** | The example. Don't edit it |
 | `GET /health` | **works** | Is the service up, is the model loaded |
 | `GET /log` | **works** | The audit log, as JSON |
-| `POST /submit` | **you build it** | Milestones 3, 4, 5 |
-| `POST /appeal` | **you build it** | Milestone 5 |
+| `POST /submit` | **works** | Runs analysis synchronously |
+| `POST /appeal` | **works** | Records an appeal for a synchronous result |
+| `POST /jobs` | **works** | Creates a queued analysis job and returns 202 |
+| `GET /jobs/<job_id>` | **works** | Returns job progress or its completed result |
 
 ---
 
@@ -99,12 +125,73 @@ position.**
 |---|---|
 | `python test.py` | Checks your environment |
 | `python app.py` | Runs the service |
+| `python worker.py` | Runs the queue worker continuously |
+| `python worker.py --once` | Processes at most one queued job |
 | `python detector.py` | Downloads the model and scores a sample — **run before class** |
 | `python detector.py "some text"` | Score one piece of text from the terminal |
 | `python stylometry.py "some text"` | Your style measures, on one piece of text |
 | `python run_attacks.py --set <folder>` | The attack set — **unit 8** |
 | `python run_attacks.py --flood 15` | Push past your rate limit and print the status codes — **unit 8** |
 | `python run_eval.py --label before` | Your five criteria, three trials — **unit 8** |
+
+---
+
+## Test the asynchronous job flow
+
+Submit a job while the API and worker are running:
+
+```bash
+curl -i -X POST http://127.0.0.1:5000/jobs \
+  -H "Content-Type: application/json" \
+  -d '{"creator_id":"manual-test","text":"This is a complete test paragraph. It contains several sentences so the local model has enough writing to analyze. The worker should claim it and save a result."}'
+```
+
+The API should return `202 Accepted`:
+
+```json
+{
+  "job_id": "YOUR-JOB-ID",
+  "status": "queued",
+  "status_url": "/jobs/YOUR-JOB-ID"
+}
+```
+
+Poll the returned job ID:
+
+```bash
+curl http://127.0.0.1:5000/jobs/YOUR-JOB-ID
+```
+
+The normal state progression is:
+
+```text
+queued -> running -> completed
+```
+
+A completed response contains `model_score`, `style_score`, `confidence`,
+`guess`, and `label`. If processing raises an error, the worker retries with a
+delay. After the final attempt the job becomes `failed`. If a worker crashes,
+its lease expires and another worker returns the job to the queue.
+
+For a one-job smoke test, use:
+
+```bash
+python worker.py --once
+```
+
+Multiple worker processes are safe because PostgreSQL locks each claimed row
+and skips jobs that another worker has already locked.
+
+Run the automated checks with:
+
+```bash
+set -a; source .env; set +a
+python test.py
+python -m unittest -v test_worker_database.py
+```
+
+The integration suite checks completion, retries, final failure, expired
+leases, simultaneous claims, and Redis-backed rate limiting.
 
 ---
 

@@ -97,10 +97,12 @@ RATE_LIMITING_ENABLED = os.getenv("AI201_RATE_LIMITS", "1") == "1"
 RATE_LIMIT_PER_MINUTE = 5
 RATE_LIMIT_PER_DAY = 50
 
-# Flask-Limiter warns loudly without this. In-memory is right for one laptop
-# and wrong for anything real — a restart forgets every count, and two copies
-# of the service wouldn't share limits.
-RATE_LIMIT_STORAGE = "memory://"
+# Redis keeps limits consistent across API processes and across restarts.
+# docker compose exposes the local development instance only on loopback.
+RATE_LIMIT_STORAGE = os.getenv(
+    "RATE_LIMIT_STORAGE_URI",
+    "redis://127.0.0.1:6379/0",
+)
 
 
 # ─── Paths ───────────────────────────────────────────────────────────────────
@@ -115,4 +117,11 @@ DATABASE_POOL_MIN = int(os.getenv("DATABASE_POOL_MIN", "1"))
 DATABASE_POOL_MAX = int(os.getenv("DATABASE_POOL_MAX", "5"))
 JOB_LEASE_SECONDS = int(os.getenv("JOB_LEASE_SECONDS", "300"))
 JOB_POLL_SECONDS = float(os.getenv("JOB_POLL_SECONDS", "0.5"))
+JOB_RETRY_BASE_SECONDS = float(os.getenv("JOB_RETRY_BASE_SECONDS", "2"))
+JOB_RETRY_MAX_SECONDS = float(os.getenv("JOB_RETRY_MAX_SECONDS", "60"))
+JOB_RECOVERY_BATCH_SIZE = int(os.getenv("JOB_RECOVERY_BATCH_SIZE", "100"))
+JOB_RECOVERY_INTERVAL_SECONDS = float(
+    os.getenv("JOB_RECOVERY_INTERVAL_SECONDS", "30")
+)
+JOB_DATABASE_RETRY_SECONDS = float(os.getenv("JOB_DATABASE_RETRY_SECONDS", "5"))
 MAX_JOB_TEXT_CHARS = int(os.getenv("MAX_JOB_TEXT_CHARS", "50000"))

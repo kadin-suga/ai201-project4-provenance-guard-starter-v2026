@@ -1,9 +1,10 @@
 # Acceptance criteria — Provenance Guard
 
-Five criteria that say what "working" means for this service, written in unit 7
-**before** you built it.
+Seven criteria that say what "working" means for this service. The first five
+cover the original synchronous service; criteria 6 and 7 cover the asynchronous
+job queue and worker.
 
-**All five are yours.** None are given.
+**All seven are yours.** None are given.
 
 An acceptance criterion names a number or something plainly observable. *"The
 detector is accurate"* is an opinion — and perfect AI detection isn't possible
@@ -100,6 +101,31 @@ All 5 invalid requests—missing text, blank text,non-string text, malformed JSO
 
 **Why this target:**
 Bad input should be rejected predictably rather than crashing the service or   producing a meaningless detection result. The 10,000-character limit makes the handling of enormous submissions explicit.
+
+
+---
+
+## 6. A valid job is accepted into the queue
+
+Every valid `POST /jobs` request will return HTTP 202 with a nonblank `job_id`,
+the status `queued`, and a `status_url` that can be used to retrieve the job.
+
+**Why this target:**
+The asynchronous API should acknowledge valid work quickly and give the caller
+a reliable way to check its progress.
+
+
+---
+
+## 7. A queued job reaches a completed result
+
+With PostgreSQL, Redis, and one worker running, each of 3 valid queued jobs will
+reach `completed` within 60 seconds and return `model_score`, `style_score`,
+`confidence`, `guess`, and `label` from `GET /jobs/<job_id>`.
+
+**Why this target:**
+Creating a queue entry is not enough. This checks the basic end-to-end path from
+submission through model analysis to a stored result that the caller can read.
 
 
 ---

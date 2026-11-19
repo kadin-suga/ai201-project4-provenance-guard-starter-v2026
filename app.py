@@ -49,9 +49,8 @@ app = Flask(__name__)
 # that quietly does nothing, so uncommenting it early costs you nothing — but
 # it also means no 429 until you've done step 1.
 #
-# The storage backend is preconfigured, which stops Flask-Limiter printing a
-# warning on every start. In-memory is right for one laptop and wrong for
-# anything real — a restart forgets every count.
+# Redis stores counters shared by every API process and preserves them across
+# API restarts. The local instance is defined in docker-compose.yml.
 
 class _LimiterOff:
     """
