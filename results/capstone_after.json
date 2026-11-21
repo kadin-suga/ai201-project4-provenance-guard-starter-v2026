@@ -1,0 +1,495 @@
+{
+  "label": "after",
+  "timestamp": "2026-11-21T19:12:09+00:00",
+  "criteria": {
+    "1": [
+      {
+        "summary": "5/5; max 292.12 ms",
+        "met": true,
+        "evidence": [
+          {
+            "http": 202,
+            "job_id": "30b94073-c5f2-4253-8f59-e9e2b0fbba10",
+            "duration_ms": 292.12,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "50887b2b-e6d4-430b-a530-66c2018662db",
+            "duration_ms": 2.31,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "70986d53-ef08-4989-83f9-884763b325ca",
+            "duration_ms": 2.26,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "17be19bc-6bf1-4501-a763-5d9082516832",
+            "duration_ms": 3.45,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "b3f09482-2a00-4d05-8907-09b38f3d1c5c",
+            "duration_ms": 2.52,
+            "status_get": 200
+          }
+        ]
+      },
+      {
+        "summary": "5/5; max 3.99 ms",
+        "met": true,
+        "evidence": [
+          {
+            "http": 202,
+            "job_id": "4413b913-3393-4d13-8f29-6e54a5d8dbec",
+            "duration_ms": 3.99,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "22d4544c-1f91-4c58-a2c4-942bee2b925f",
+            "duration_ms": 2.9,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "eefc96a9-3e55-449f-a634-52962a387a3d",
+            "duration_ms": 1.75,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "94551a40-b207-41f2-be54-7500efecd374",
+            "duration_ms": 2.63,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "0984ffc4-de67-46c8-b3bc-50927e67b400",
+            "duration_ms": 3.21,
+            "status_get": 200
+          }
+        ]
+      },
+      {
+        "summary": "5/5; max 4.03 ms",
+        "met": true,
+        "evidence": [
+          {
+            "http": 202,
+            "job_id": "3fcd3c2e-e1f4-4900-8fa0-3b0d5e4e9de0",
+            "duration_ms": 4.03,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "78d8d4c4-bf2a-454f-870a-d7d5b29a3f25",
+            "duration_ms": 1.95,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "e3d7bf21-de2b-48da-97de-81c78b52829c",
+            "duration_ms": 2.35,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "67f69e59-b83e-471b-bcd6-a1b1d37a39d3",
+            "duration_ms": 3.43,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "e597512d-4d35-489e-aefd-bba93f8644b5",
+            "duration_ms": 2.23,
+            "status_get": 200
+          }
+        ]
+      }
+    ],
+    "2": [
+      {
+        "summary": "completed in 1.117 s",
+        "met": true,
+        "evidence": {
+          "job_id": "1f435e8b-47a4-4e67-b34b-5ae757169c36",
+          "duration_seconds": 1.117,
+          "status": "completed",
+          "confidence": 0.4306,
+          "guess": "unsure"
+        }
+      },
+      {
+        "summary": "completed in 0.038 s",
+        "met": true,
+        "evidence": {
+          "job_id": "a9b28b7f-c245-40a4-92bc-2a17883b208b",
+          "duration_seconds": 0.038,
+          "status": "completed",
+          "confidence": 0.4306,
+          "guess": "unsure"
+        }
+      },
+      {
+        "summary": "completed in 0.043 s",
+        "met": true,
+        "evidence": {
+          "job_id": "c9dc445a-9f70-48f3-861d-4d1c245f45ab",
+          "duration_seconds": 0.043,
+          "status": "completed",
+          "confidence": 0.4306,
+          "guess": "unsure"
+        }
+      }
+    ],
+    "3": [
+      {
+        "summary": "2/2 unique claims",
+        "met": true,
+        "evidence": {
+          "expected": [
+            "3219c5e8-ce2d-4828-b13b-46d399f2912d",
+            "e76073d8-8242-4a9f-81bd-c1ea46425fed"
+          ],
+          "claimed": [
+            "3219c5e8-ce2d-4828-b13b-46d399f2912d",
+            "e76073d8-8242-4a9f-81bd-c1ea46425fed"
+          ],
+          "errors": []
+        }
+      },
+      {
+        "summary": "2/2 unique claims",
+        "met": true,
+        "evidence": {
+          "expected": [
+            "8db4d7b4-8eb7-48fd-8787-6c6fb84dfe0b",
+            "903abcac-f1cd-4279-aaaf-5ba957be0d6d"
+          ],
+          "claimed": [
+            "8db4d7b4-8eb7-48fd-8787-6c6fb84dfe0b",
+            "903abcac-f1cd-4279-aaaf-5ba957be0d6d"
+          ],
+          "errors": []
+        }
+      },
+      {
+        "summary": "2/2 unique claims",
+        "met": true,
+        "evidence": {
+          "expected": [
+            "1629d782-82d3-4410-a732-6747716fa116",
+            "b9ca09a6-46ec-48f5-8c57-f8ca6c30ddaa"
+          ],
+          "claimed": [
+            "1629d782-82d3-4410-a732-6747716fa116",
+            "b9ca09a6-46ec-48f5-8c57-f8ca6c30ddaa"
+          ],
+          "errors": []
+        }
+      }
+    ],
+    "4": [
+      {
+        "summary": "failed after 3 attempts; 3/3 run logs",
+        "met": true,
+        "evidence": {
+          "job_id": "e1b4dce0-0c4b-4db9-878b-90b653aaa17f",
+          "stored_status": "failed",
+          "attempts": 3,
+          "public_response": {
+            "attempts": 3,
+            "completed_at": "2026-11-21T19:12:10.701264+00:00",
+            "created_at": "2026-11-21T19:12:10.674742+00:00",
+            "job_id": "e1b4dce0-0c4b-4db9-878b-90b653aaa17f",
+            "message": "Analysis could not be completed.",
+            "started_at": "2026-11-21T19:12:10.699414+00:00",
+            "status": "failed"
+          },
+          "run_records": [
+            {
+              "timestamp": "2026-11-21T19:12:10+00:00",
+              "job_id": "e1b4dce0-0c4b-4db9-878b-90b653aaa17f",
+              "creator_id": "capstone-c4-1-6f867f22-a289-43f1-8b55-c7bd6f170859",
+              "worker_id": "capstone-c4-worker-1-0",
+              "attempt": 1,
+              "input": {
+                "text": "A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."
+              },
+              "output": {
+                "status": "queued",
+                "error": "RuntimeError: forced failure"
+              },
+              "duration_ms": 6.77
+            },
+            {
+              "timestamp": "2026-11-21T19:12:10+00:00",
+              "job_id": "e1b4dce0-0c4b-4db9-878b-90b653aaa17f",
+              "creator_id": "capstone-c4-1-6f867f22-a289-43f1-8b55-c7bd6f170859",
+              "worker_id": "capstone-c4-worker-1-1",
+              "attempt": 2,
+              "input": {
+                "text": "A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."
+              },
+              "output": {
+                "status": "queued",
+                "error": "RuntimeError: forced failure"
+              },
+              "duration_ms": 2.88
+            },
+            {
+              "timestamp": "2026-11-21T19:12:10+00:00",
+              "job_id": "e1b4dce0-0c4b-4db9-878b-90b653aaa17f",
+              "creator_id": "capstone-c4-1-6f867f22-a289-43f1-8b55-c7bd6f170859",
+              "worker_id": "capstone-c4-worker-1-2",
+              "attempt": 3,
+              "input": {
+                "text": "A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."
+              },
+              "output": {
+                "status": "failed",
+                "error": "RuntimeError: forced failure"
+              },
+              "duration_ms": 3.34
+            }
+          ]
+        }
+      },
+      {
+        "summary": "failed after 3 attempts; 3/3 run logs",
+        "met": true,
+        "evidence": {
+          "job_id": "92aae0d3-e7c5-40b2-8755-6a7ccae8cbbe",
+          "stored_status": "failed",
+          "attempts": 3,
+          "public_response": {
+            "attempts": 3,
+            "completed_at": "2026-11-21T19:12:10.858610+00:00",
+            "created_at": "2026-11-21T19:12:10.846697+00:00",
+            "job_id": "92aae0d3-e7c5-40b2-8755-6a7ccae8cbbe",
+            "message": "Analysis could not be completed.",
+            "started_at": "2026-11-21T19:12:10.856832+00:00",
+            "status": "failed"
+          },
+          "run_records": [
+            {
+              "timestamp": "2026-11-21T19:12:10+00:00",
+              "job_id": "92aae0d3-e7c5-40b2-8755-6a7ccae8cbbe",
+              "creator_id": "capstone-c4-2-6cad1c4b-a944-4efb-a7bb-c1faddf65f14",
+              "worker_id": "capstone-c4-worker-2-0",
+              "attempt": 1,
+              "input": {
+                "text": "A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."
+              },
+              "output": {
+                "status": "queued",
+                "error": "RuntimeError: forced failure"
+              },
+              "duration_ms": 2.24
+            },
+            {
+              "timestamp": "2026-11-21T19:12:10+00:00",
+              "job_id": "92aae0d3-e7c5-40b2-8755-6a7ccae8cbbe",
+              "creator_id": "capstone-c4-2-6cad1c4b-a944-4efb-a7bb-c1faddf65f14",
+              "worker_id": "capstone-c4-worker-2-1",
+              "attempt": 2,
+              "input": {
+                "text": "A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."
+              },
+              "output": {
+                "status": "queued",
+                "error": "RuntimeError: forced failure"
+              },
+              "duration_ms": 2.25
+            },
+            {
+              "timestamp": "2026-11-21T19:12:10+00:00",
+              "job_id": "92aae0d3-e7c5-40b2-8755-6a7ccae8cbbe",
+              "creator_id": "capstone-c4-2-6cad1c4b-a944-4efb-a7bb-c1faddf65f14",
+              "worker_id": "capstone-c4-worker-2-2",
+              "attempt": 3,
+              "input": {
+                "text": "A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."
+              },
+              "output": {
+                "status": "failed",
+                "error": "RuntimeError: forced failure"
+              },
+              "duration_ms": 1.83
+            }
+          ]
+        }
+      },
+      {
+        "summary": "failed after 3 attempts; 3/3 run logs",
+        "met": true,
+        "evidence": {
+          "job_id": "8908d0c9-8b0a-4fd7-8054-3778e22396f0",
+          "stored_status": "failed",
+          "attempts": 3,
+          "public_response": {
+            "attempts": 3,
+            "completed_at": "2026-11-21T19:12:10.991922+00:00",
+            "created_at": "2026-11-21T19:12:10.982552+00:00",
+            "job_id": "8908d0c9-8b0a-4fd7-8054-3778e22396f0",
+            "message": "Analysis could not be completed.",
+            "started_at": "2026-11-21T19:12:10.990336+00:00",
+            "status": "failed"
+          },
+          "run_records": [
+            {
+              "timestamp": "2026-11-21T19:12:10+00:00",
+              "job_id": "8908d0c9-8b0a-4fd7-8054-3778e22396f0",
+              "creator_id": "capstone-c4-3-06090d83-50cf-443b-af24-107d29f16c55",
+              "worker_id": "capstone-c4-worker-3-0",
+              "attempt": 1,
+              "input": {
+                "text": "A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."
+              },
+              "output": {
+                "status": "queued",
+                "error": "RuntimeError: forced failure"
+              },
+              "duration_ms": 1.92
+            },
+            {
+              "timestamp": "2026-11-21T19:12:10+00:00",
+              "job_id": "8908d0c9-8b0a-4fd7-8054-3778e22396f0",
+              "creator_id": "capstone-c4-3-06090d83-50cf-443b-af24-107d29f16c55",
+              "worker_id": "capstone-c4-worker-3-1",
+              "attempt": 2,
+              "input": {
+                "text": "A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."
+              },
+              "output": {
+                "status": "queued",
+                "error": "RuntimeError: forced failure"
+              },
+              "duration_ms": 1.86
+            },
+            {
+              "timestamp": "2026-11-21T19:12:10+00:00",
+              "job_id": "8908d0c9-8b0a-4fd7-8054-3778e22396f0",
+              "creator_id": "capstone-c4-3-06090d83-50cf-443b-af24-107d29f16c55",
+              "worker_id": "capstone-c4-worker-3-2",
+              "attempt": 3,
+              "input": {
+                "text": "A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."
+              },
+              "output": {
+                "status": "failed",
+                "error": "RuntimeError: forced failure"
+              },
+              "duration_ms": 2.62
+            }
+          ]
+        }
+      }
+    ],
+    "5": [
+      {
+        "summary": "HTTP 200; 1 audit decision",
+        "met": true,
+        "evidence": {
+          "response": {
+            "confidence": 0.4306,
+            "content_id": "3a47def9-7c8a-4d56-8890-9af807b9c62a",
+            "guess": "unsure",
+            "label": "Our signals could not reliably determine how this text was written.",
+            "model_score": 0.3839,
+            "style_score": 0.4774
+          },
+          "audit_entries": [
+            {
+              "timestamp": "2026-11-21T19:12:10+00:00",
+              "content_id": "3a47def9-7c8a-4d56-8890-9af807b9c62a",
+              "creator_id": "capstone-c5-1-8da1f440-edda-42c0-93fc-9e11e348d4f2",
+              "guess": "unsure",
+              "model_score": 0.3839,
+              "style_score": 0.4774,
+              "combined_score": 0.4306,
+              "label": "Our signals could not reliably determine how this text was written.",
+              "status": "decided"
+            }
+          ]
+        }
+      },
+      {
+        "summary": "HTTP 200; 1 audit decision",
+        "met": true,
+        "evidence": {
+          "response": {
+            "confidence": 0.4306,
+            "content_id": "ed2ae6bc-435d-4d62-b0e4-00d678e50a47",
+            "guess": "unsure",
+            "label": "Our signals could not reliably determine how this text was written.",
+            "model_score": 0.3839,
+            "style_score": 0.4774
+          },
+          "audit_entries": [
+            {
+              "timestamp": "2026-11-21T19:12:10+00:00",
+              "content_id": "ed2ae6bc-435d-4d62-b0e4-00d678e50a47",
+              "creator_id": "capstone-c5-2-8bb76289-37c6-43ae-b5e6-ec9484770b02",
+              "guess": "unsure",
+              "model_score": 0.3839,
+              "style_score": 0.4774,
+              "combined_score": 0.4306,
+              "label": "Our signals could not reliably determine how this text was written.",
+              "status": "decided"
+            }
+          ]
+        }
+      },
+      {
+        "summary": "HTTP 200; 1 audit decision",
+        "met": true,
+        "evidence": {
+          "response": {
+            "confidence": 0.4306,
+            "content_id": "5a5d45b2-972a-493d-b0df-e1c1a5af81da",
+            "guess": "unsure",
+            "label": "Our signals could not reliably determine how this text was written.",
+            "model_score": 0.3839,
+            "style_score": 0.4774
+          },
+          "audit_entries": [
+            {
+              "timestamp": "2026-11-21T19:12:11+00:00",
+              "content_id": "5a5d45b2-972a-493d-b0df-e1c1a5af81da",
+              "creator_id": "capstone-c5-3-55733e13-22de-4166-ad7f-9132f187eb3d",
+              "guess": "unsure",
+              "model_score": 0.3839,
+              "style_score": 0.4774,
+              "combined_score": 0.4306,
+              "label": "Our signals could not reliably determine how this text was written.",
+              "status": "decided"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "cost": {
+    "unit": "seconds of local compute per completed analysis",
+    "runs": 10,
+    "durations_seconds": [
+      0.0473,
+      0.041,
+      0.0446,
+      0.0401,
+      0.0458,
+      0.0393,
+      0.0447,
+      0.0424,
+      0.0341,
+      0.037
+    ],
+    "mean_seconds": 0.0416
+  }
+}
