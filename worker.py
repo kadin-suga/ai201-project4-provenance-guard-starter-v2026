@@ -54,6 +54,15 @@ def process_job(job: dict, *, worker_id: str) -> bool:
         )
     except database.JobStateConflict as exc:
         LOGGER.warning("discarded stale result for job=%s: %s", job_id, exc)
+        audit.log_run(
+            job_id=job_id,
+            creator_id=job["creator_id"],
+            attempt=job["attempts"],
+            input_text=job["input_text"],
+            output={"status": "stale", "error": str(exc)},
+            duration_ms=(time.perf_counter() - started) * 1000,
+            worker_id=worker_id,
+        )
         return False
     except Exception as exc:  # noqa: BLE001 - every job failure must be persisted
         LOGGER.exception("analysis failed for job=%s", job_id)
@@ -81,8 +90,17 @@ def process_job(job: dict, *, worker_id: str) -> bool:
                 failed["status"],
                 failed["attempts"],
             )
-        except database.JobStateConflict:
+        except database.JobStateConflict as conflict:
             LOGGER.warning("job=%s was already recovered by another worker", job_id)
+            audit.log_run(
+                job_id=job_id,
+                creator_id=job["creator_id"],
+                attempt=job["attempts"],
+                input_text=job["input_text"],
+                output={"status": "stale", "error": str(conflict)},
+                duration_ms=(time.perf_counter() - started) * 1000,
+                worker_id=worker_id,
+            )
         return False
 
     audit.log_run(
