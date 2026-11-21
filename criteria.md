@@ -1,162 +1,58 @@
-# Acceptance criteria — Provenance Guard
+# Capstone acceptance criteria — Provenance Guard job queue
 
-Seven criteria that say what "working" means for this service. The first five
-cover the original synchronous service; criteria 6 and 7 cover the asynchronous
-job queue and worker.
+These five criteria define the capstone target before the capstone trial runner
+or its result files exist. Criteria 1–4 cover the new asynchronous queue and
+worker extension. Criterion 5 checks that the original synchronous system still
+works. Every criterion is evaluated in three independent trials.
 
-**All seven are yours.** None are given.
+## 1. Valid work is accepted without waiting for analysis
 
-An acceptance criterion names a number or something plainly observable. *"The
-detector is accurate"* is an opinion — and perfect AI detection isn't possible
-anyway, so it's an opinion about something nobody can deliver. *"Of 10 pieces I
-wrote myself, at most 1 is labelled high-confidence AI"* is a criterion.
+In each trial, all 5 valid `POST /jobs` requests must return HTTP 202 within
+500 ms, with a nonblank `job_id`, `status: "queued"`, and a `status_url` that
+retrieves that same job.
 
-Under each, write a sentence or two on **why that target**. *"I allow at most 1
-false positive in 10 because on a writing site a wrong accusation costs more
-than a missed detection"* is a real answer.
+**Why this target:** The extension exists to move GPT-2 analysis out of the
+request path. Five requests expose persistence or response-shape failures, and
+500 ms is comfortably below the seconds-long model work while allowing local
+database overhead.
 
-> Missing your own targets next unit costs you nothing. Setting a target so
-> easy you can't miss it does.
+## 2. A queued job reaches a usable result
 
----
+In each trial, 1 valid queued job must reach `completed` within 60 seconds and
+return `model_score`, `style_score`, `confidence`, `guess`, and `label`; all
+three numeric scores must be between 0.0 and 1.0.
 
-## Pick numbers you can defend
+**Why this target:** A quick 202 is meaningless unless the worker finishes the
+real analysis. Sixty seconds allows the local GPT-2 model to run on CPU but is
+short enough that a caller can reasonably poll for a result.
 
-**Cover at least three of these five areas.** They're prompts, not a form.
+## 3. Concurrent workers never process the same job
 
-| Area | A question it could answer |
-|---|---|
-| False positives | How often may a human's writing get called AI? |
-| Score spread | How far apart should clearly-AI and clearly-human text score? |
-| Label coverage | Is every one of your three labels actually reachable? |
-| The appeal path | Does an appeal always change status and always get recorded? |
-| Bad input | What happens when `text` is missing, empty, or enormous? |
+In each trial, 2 jobs claimed at the same instant by 2 worker threads must
+produce 2 different nonblank job IDs, with each queued job claimed exactly
+once.
 
-Two things worth knowing before you pick numbers:
+**Why this target:** Duplicate processing wastes the system's main compute cost
+and can produce conflicting events. Two simultaneous claimers exercise the
+database lock boundary directly; any duplicate is unacceptable.
 
-- **The expensive mistake is one-sided.** Missing some AI text costs the site a
-  little. Accusing a real writer costs that person a lot. A criterion that
-  treats both errors as equally bad is describing a system nobody would ship.
-- **Unit 8 tests across three trials, and the target has to hold across all
-  three.** Your first signal runs a model, so identical input can score
-  differently twice. A target of "at most 1 in 10" against trials of 2, 1, 2 is
-  a **miss**.
+## 4. Failed analysis is bounded and observable
 
----
-## 1.
+In each trial, a forced model exception must be attempted exactly 3 times,
+finish with public status `failed`, expose no raw exception through
+`GET /jobs/<job_id>`, and write 3 JSONL run records. Every record must contain
+named `timestamp`, `input`, `output`, and `duration_ms` fields.
 
-<!-- Your criterion. It must name a number. -->
-Of 10 pieces of genuine human writing, no more than 1 will be labeled ai in each evaluation trial.
+**Why this target:** A poison job must not retry forever or leak internals, and
+each failed attempt must leave enough evidence to diagnose it. Three attempts
+allow two transient retries and one final failure without silently losing work.
 
+## 5. The original synchronous route does not regress
 
-**Why this target:**
-A false accusation can harm a real writer more than allowing one AI-generated  submission through. Ten samples provide a meaningful test without making the evaluation too large.
+In each trial, 1 fixed valid `POST /submit` request must return HTTP 200 with
+`content_id`, `model_score`, `style_score`, `confidence`, `guess`, and `label`,
+and a matching decision must appear in the audit log.
 
-
----
-
-## 2.
-
-<!-- Your criterion. -->
-Across 5 clearly human and 5 clearly AI-generated samples, the AI samples’ average confidence score will be at least 0.25 higher than the human samples’ average in every trial.
-
-
-**Why this target:**
-The two groups should produce meaningfully different scores, not merely land on   opposite sides of a threshold by a tiny amount. A 0.25 gap leaves room for an unsure region.
-
-Remember that this project’s confidence means the combined AI-likelihood score: higher is more AI-like.
-
-
----
-
-## 3.
-
-<!-- Your criterion. -->
-A fixed calibration set of at least 6 submissions will produce at least one human, one unsure, and one ai result in every trial.
-
-
-**Why this target:**
-All three labels need to be reachable. If one never appears, the thresholds or scoring range are not functioning as intended.
-
-
----
-
-## 4.
-
-<!-- Your criterion. -->
-All 5 valid appeals will return HTTP 200, report status under_review, and create an appeal log entry with the matching content_id.
-
-
-**Why this target:**
-An appeal is the writer’s protection against a false positive. It must work every time and leave auditable evidence.
-
-
----
-
-## 5.
-
-<!-- Your criterion. -->
-All 5 invalid requests—missing text, blank text,non-string text, malformed JSON, and text longer than 10,000 characters—will return a documented 4xx JSON error, and none will produce a 500 response.
-
-
-**Why this target:**
-Bad input should be rejected predictably rather than crashing the service or   producing a meaningless detection result. The 10,000-character limit makes the handling of enormous submissions explicit.
-
-
----
-
-## 6. A valid job is accepted into the queue
-
-Every valid `POST /jobs` request will return HTTP 202 with a nonblank `job_id`,
-the status `queued`, and a `status_url` that can be used to retrieve the job.
-
-**Why this target:**
-The asynchronous API should acknowledge valid work quickly and give the caller
-a reliable way to check its progress.
-
-
----
-
-## 7. A queued job reaches a completed result
-
-With PostgreSQL, Redis, and one worker running, each of 3 valid queued jobs will
-reach `completed` within 60 seconds and return `model_score`, `style_score`,
-`confidence`, `guess`, and `label` from `GET /jobs/<job_id>`.
-
-**Why this target:**
-Creating a queue entry is not enough. This checks the basic end-to-end path from
-submission through model analysis to a stored result that the caller can read.
-
-
----
-
-<!-- ─────────────────────────────────────────────────────────────────────────
-     UNIT 8 — read this before you change anything above.
-
-     If a criterion turns out to be BROKEN rather than merely unmet, you can
-     revise it, and that earns credit. But never delete or edit the original
-     line. Add the revision underneath, like this:
-
-         ## 2. Uncertain cases land in the unsure band
-
-         The system handles uncertain cases well.
-
-         **Why this target:** ...
-
-         > **Revised in unit 8:** Text I judged borderline scores between
-         > 0.4 and 0.6 in at least 4 of 5 cases.
-         >
-         > **Why revised:** "well" gave me nothing to check. I couldn't
-         > reach a verdict from it at all.
-
-     That's a revision because the criterion couldn't be MEASURED.
-
-     Lowering a target because you missed it is not a revision, and it costs
-     you the point:
-
-         ✗ "At most 1 of 10 of my own pieces flagged as AI" → "at most 3
-            of 10", because 1 of 10 turned out to be hard.
-
-     A number you missed stays where it is, gets diagnosed, and gets a fix
-     attempted. That's where the points are.
-     ───────────────────────────────────────────────────────────────────────── -->
+**Why this target:** The queue is an extension, not a replacement. One fixed
+sample per trial checks the original end-to-end contract and its audit trail
+without turning this capstone into a second detector-accuracy project.
