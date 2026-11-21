@@ -283,9 +283,17 @@ def main() -> int:
     try:
         for trial in range(1, 4):
             results["criteria"]["1"].append(_criterion_1(trial, job_ids))
+            _cleanup(job_ids)
+            job_ids.clear()
             results["criteria"]["2"].append(_criterion_2(trial, job_ids))
+            _cleanup(job_ids)
+            job_ids.clear()
             results["criteria"]["3"].append(_criterion_3(trial, job_ids))
+            _cleanup(job_ids)
+            job_ids.clear()
             results["criteria"]["4"].append(_criterion_4(trial, job_ids))
+            _cleanup(job_ids)
+            job_ids.clear()
             results["criteria"]["5"].append(_criterion_5(trial))
         if args.cost_runs:
             results["cost"] = _measure_cost(args.cost_runs, job_ids)
