@@ -1,0 +1,340 @@
+{
+  "label": "before",
+  "timestamp": "2026-11-21T19:07:24+00:00",
+  "criteria": {
+    "1": [
+      {
+        "summary": "5/5; max 243.80 ms",
+        "met": true,
+        "evidence": [
+          {
+            "http": 202,
+            "job_id": "6ab67976-d47f-4b0c-9e32-11c3c00d40ca",
+            "duration_ms": 243.8,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "a61ec563-7e2c-4c92-b082-d297ef69ce43",
+            "duration_ms": 2.76,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "ac9c18c1-bbdf-4331-a0f6-68c838fa11b5",
+            "duration_ms": 2.31,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "0e8aa97d-3d29-4d47-81e5-f05333810cec",
+            "duration_ms": 2.46,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "597952b5-7411-4997-ad25-e81b44cecd06",
+            "duration_ms": 2.45,
+            "status_get": 200
+          }
+        ]
+      },
+      {
+        "summary": "5/5; max 2.99 ms",
+        "met": true,
+        "evidence": [
+          {
+            "http": 202,
+            "job_id": "de21bd32-daeb-48d8-ac3a-57097ba88d08",
+            "duration_ms": 2.99,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "49ffe397-a111-443b-b149-6e15898a51a7",
+            "duration_ms": 1.66,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "3a3a3adc-2f2a-4a2c-ac81-ec4e2a0baba3",
+            "duration_ms": 1.85,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "8a78d335-1524-40bc-b140-c47d369198ee",
+            "duration_ms": 1.97,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "b75afe5c-e360-4657-9f2e-351249c567de",
+            "duration_ms": 2.78,
+            "status_get": 200
+          }
+        ]
+      },
+      {
+        "summary": "5/5; max 2.56 ms",
+        "met": true,
+        "evidence": [
+          {
+            "http": 202,
+            "job_id": "9004454a-7819-48fb-91a6-e9f502c4831a",
+            "duration_ms": 2.56,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "743b6279-2f4b-473e-a465-d50a3e450cbe",
+            "duration_ms": 1.93,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "23b4c907-b7fa-45dd-82d5-445f994447bb",
+            "duration_ms": 1.9,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "0ceb144a-96f9-4595-9f37-4c2eeb7f821e",
+            "duration_ms": 2.13,
+            "status_get": 200
+          },
+          {
+            "http": 202,
+            "job_id": "a59e4322-8f27-4df4-85d2-715f9310034f",
+            "duration_ms": 1.69,
+            "status_get": 200
+          }
+        ]
+      }
+    ],
+    "2": [
+      {
+        "summary": "completed in 1.147 s",
+        "met": true,
+        "evidence": {
+          "job_id": "2e86f17c-ec9b-4830-864d-4db071f068e8",
+          "duration_seconds": 1.147,
+          "status": "completed",
+          "confidence": 0.4306,
+          "guess": "unsure"
+        }
+      },
+      {
+        "summary": "completed in 0.038 s",
+        "met": true,
+        "evidence": {
+          "job_id": "c3d568a3-292e-4dae-b775-8a7f19f2dadb",
+          "duration_seconds": 0.038,
+          "status": "completed",
+          "confidence": 0.4306,
+          "guess": "unsure"
+        }
+      },
+      {
+        "summary": "completed in 0.042 s",
+        "met": true,
+        "evidence": {
+          "job_id": "63c5819f-fa13-4bbb-9294-53a6decd971e",
+          "duration_seconds": 0.042,
+          "status": "completed",
+          "confidence": 0.4306,
+          "guess": "unsure"
+        }
+      }
+    ],
+    "3": [
+      {
+        "summary": "2/2 unique claims",
+        "met": true,
+        "evidence": {
+          "expected": [
+            "507ef68a-6145-4313-aef9-9d4a4b594885",
+            "eadb40e6-6e2f-4817-921b-b080dfa3979e"
+          ],
+          "claimed": [
+            "eadb40e6-6e2f-4817-921b-b080dfa3979e",
+            "507ef68a-6145-4313-aef9-9d4a4b594885"
+          ],
+          "errors": []
+        }
+      },
+      {
+        "summary": "2/2 unique claims",
+        "met": true,
+        "evidence": {
+          "expected": [
+            "358dfdc7-6a5e-42f2-954e-10ff53cc293f",
+            "66e6bcad-d685-4f7b-9347-57fb11fddcad"
+          ],
+          "claimed": [
+            "358dfdc7-6a5e-42f2-954e-10ff53cc293f",
+            "66e6bcad-d685-4f7b-9347-57fb11fddcad"
+          ],
+          "errors": []
+        }
+      },
+      {
+        "summary": "2/2 unique claims",
+        "met": true,
+        "evidence": {
+          "expected": [
+            "5aedc39a-d329-467d-a0bd-25a241bcfefd",
+            "f0a2ef98-5309-4ba4-a042-988863de9e14"
+          ],
+          "claimed": [
+            "5aedc39a-d329-467d-a0bd-25a241bcfefd",
+            "f0a2ef98-5309-4ba4-a042-988863de9e14"
+          ],
+          "errors": []
+        }
+      }
+    ],
+    "4": [
+      {
+        "summary": "failed after 3 attempts; 0/3 run logs",
+        "met": false,
+        "evidence": {
+          "job_id": "b6629f30-e4ad-4898-96c8-19ac2923e9a8",
+          "stored_status": "failed",
+          "attempts": 3,
+          "public_response": {
+            "attempts": 3,
+            "completed_at": "2026-11-21T19:07:26.153357+00:00",
+            "created_at": "2026-11-21T19:07:26.128598+00:00",
+            "job_id": "b6629f30-e4ad-4898-96c8-19ac2923e9a8",
+            "message": "Analysis could not be completed.",
+            "started_at": "2026-11-21T19:07:26.150800+00:00",
+            "status": "failed"
+          },
+          "run_records": []
+        }
+      },
+      {
+        "summary": "failed after 3 attempts; 0/3 run logs",
+        "met": false,
+        "evidence": {
+          "job_id": "cd4479b3-5d5a-4171-aa1d-e3b8ced187d0",
+          "stored_status": "failed",
+          "attempts": 3,
+          "public_response": {
+            "attempts": 3,
+            "completed_at": "2026-11-21T19:07:26.291930+00:00",
+            "created_at": "2026-11-21T19:07:26.279895+00:00",
+            "job_id": "cd4479b3-5d5a-4171-aa1d-e3b8ced187d0",
+            "message": "Analysis could not be completed.",
+            "started_at": "2026-11-21T19:07:26.290332+00:00",
+            "status": "failed"
+          },
+          "run_records": []
+        }
+      },
+      {
+        "summary": "failed after 3 attempts; 0/3 run logs",
+        "met": false,
+        "evidence": {
+          "job_id": "188cc0b9-79ed-4efa-8876-1e497a0515ea",
+          "stored_status": "failed",
+          "attempts": 3,
+          "public_response": {
+            "attempts": 3,
+            "completed_at": "2026-11-21T19:07:26.419316+00:00",
+            "created_at": "2026-11-21T19:07:26.408872+00:00",
+            "job_id": "188cc0b9-79ed-4efa-8876-1e497a0515ea",
+            "message": "Analysis could not be completed.",
+            "started_at": "2026-11-21T19:07:26.417698+00:00",
+            "status": "failed"
+          },
+          "run_records": []
+        }
+      }
+    ],
+    "5": [
+      {
+        "summary": "HTTP 200; 1 audit decision",
+        "met": true,
+        "evidence": {
+          "response": {
+            "confidence": 0.4306,
+            "content_id": "664d93ab-dbd2-491f-b4cf-2721ea4a909f",
+            "guess": "unsure",
+            "label": "Our signals could not reliably determine how this text was written.",
+            "model_score": 0.3839,
+            "style_score": 0.4774
+          },
+          "audit_entries": [
+            {
+              "timestamp": "2026-11-21T19:07:26+00:00",
+              "content_id": "664d93ab-dbd2-491f-b4cf-2721ea4a909f",
+              "creator_id": "capstone-c5-1-1905f19f-d61c-4a4f-ae0f-51ad17918a81",
+              "guess": "unsure",
+              "model_score": 0.3839,
+              "style_score": 0.4774,
+              "combined_score": 0.4306,
+              "label": "Our signals could not reliably determine how this text was written.",
+              "status": "decided"
+            }
+          ]
+        }
+      },
+      {
+        "summary": "HTTP 200; 1 audit decision",
+        "met": true,
+        "evidence": {
+          "response": {
+            "confidence": 0.4306,
+            "content_id": "613d1754-47c2-49c5-badd-34a6a19fa5d9",
+            "guess": "unsure",
+            "label": "Our signals could not reliably determine how this text was written.",
+            "model_score": 0.3839,
+            "style_score": 0.4774
+          },
+          "audit_entries": [
+            {
+              "timestamp": "2026-11-21T19:07:26+00:00",
+              "content_id": "613d1754-47c2-49c5-badd-34a6a19fa5d9",
+              "creator_id": "capstone-c5-2-38adee94-c24d-4fcf-8f8d-24b9695635eb",
+              "guess": "unsure",
+              "model_score": 0.3839,
+              "style_score": 0.4774,
+              "combined_score": 0.4306,
+              "label": "Our signals could not reliably determine how this text was written.",
+              "status": "decided"
+            }
+          ]
+        }
+      },
+      {
+        "summary": "HTTP 200; 1 audit decision",
+        "met": true,
+        "evidence": {
+          "response": {
+            "confidence": 0.4306,
+            "content_id": "5e39f34b-fdff-4be8-84bb-283d319cb9ce",
+            "guess": "unsure",
+            "label": "Our signals could not reliably determine how this text was written.",
+            "model_score": 0.3839,
+            "style_score": 0.4774
+          },
+          "audit_entries": [
+            {
+              "timestamp": "2026-11-21T19:07:26+00:00",
+              "content_id": "5e39f34b-fdff-4be8-84bb-283d319cb9ce",
+              "creator_id": "capstone-c5-3-9612b1d8-2894-4726-a6a8-a668f6fc806b",
+              "guess": "unsure",
+              "model_score": 0.3839,
+              "style_score": 0.4774,
+              "combined_score": 0.4306,
+              "label": "Our signals could not reliably determine how this text was written.",
+              "status": "decided"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
