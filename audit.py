@@ -112,6 +112,35 @@ def log_rejection(creator_id: str, reason: str, **extra) -> dict:
     })
 
 
+def log_run(
+    *,
+    job_id: str,
+    creator_id: str,
+    attempt: int,
+    input_text: str,
+    output: dict,
+    duration_ms: float,
+    worker_id: str,
+) -> dict:
+    """Persist one completed or failed worker attempt as structured JSONL."""
+    entry = {
+        "timestamp": _now(),
+        "job_id": job_id,
+        "creator_id": creator_id,
+        "worker_id": worker_id,
+        "attempt": attempt,
+        "input": {"text": input_text},
+        "output": output,
+        "duration_ms": round(duration_ms, 2),
+    }
+    config.LOG_DIR.mkdir(parents=True, exist_ok=True)
+    line = json.dumps(entry, ensure_ascii=False)
+    with _lock:
+        with config.RUN_LOG.open("a", encoding="utf-8") as f:
+            f.write(line + "\n")
+    return entry
+
+
 def _append(entry: dict) -> dict:
     config.LOG_DIR.mkdir(parents=True, exist_ok=True)
     line = json.dumps(entry, ensure_ascii=False)

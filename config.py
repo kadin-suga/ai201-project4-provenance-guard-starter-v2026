@@ -109,6 +109,7 @@ RATE_LIMIT_STORAGE = os.getenv(
 
 LOG_DIR = ROOT / "logs"
 AUDIT_LOG = LOG_DIR / "audit.jsonl"
+RUN_LOG = LOG_DIR / "run_records.jsonl"
 RESULTS_DIR = ROOT / "results"
 
 

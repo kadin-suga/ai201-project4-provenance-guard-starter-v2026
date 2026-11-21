@@ -10,6 +10,7 @@ import time
 from uuid import uuid4
 
 import config
+import audit
 import database
 import detector
 import scoring
@@ -35,13 +36,14 @@ def default_worker_id() -> str:
 def process_job(job: dict, *, worker_id: str) -> bool:
     """Analyze one claimed job and store either its result or its failure."""
     job_id = job["job_id"]
+    started = time.perf_counter()
     LOGGER.info("processing job=%s attempt=%s", job_id, job["attempts"])
     try:
         model_score = detector.model_signal(job["input_text"])
         style_score = stylometry.style_signal(job["input_text"])
         confidence = scoring.combine_signals(model_score, style_score)
         guess, label = scoring.score_to_label(confidence)
-        database.complete_job(
+        completed = database.complete_job(
             job_id=job_id,
             worker_id=worker_id,
             model_score=model_score,
@@ -61,6 +63,18 @@ def process_job(job: dict, *, worker_id: str) -> bool:
                 worker_id=worker_id,
                 error=f"{type(exc).__name__}: {exc}",
             )
+            audit.log_run(
+                job_id=job_id,
+                creator_id=job["creator_id"],
+                attempt=job["attempts"],
+                input_text=job["input_text"],
+                output={
+                    "status": failed["status"],
+                    "error": f"{type(exc).__name__}: {exc}",
+                },
+                duration_ms=(time.perf_counter() - started) * 1000,
+                worker_id=worker_id,
+            )
             LOGGER.info(
                 "job=%s moved to status=%s after attempt=%s",
                 job_id,
@@ -70,6 +84,23 @@ def process_job(job: dict, *, worker_id: str) -> bool:
         except database.JobStateConflict:
             LOGGER.warning("job=%s was already recovered by another worker", job_id)
         return False
+
+    audit.log_run(
+        job_id=job_id,
+        creator_id=job["creator_id"],
+        attempt=job["attempts"],
+        input_text=job["input_text"],
+        output={
+            "status": completed["status"],
+            "model_score": model_score,
+            "style_score": style_score,
+            "confidence": confidence,
+            "guess": guess,
+            "label": label,
+        },
+        duration_ms=(time.perf_counter() - started) * 1000,
+        worker_id=worker_id,
+    )
 
     LOGGER.info(
         "completed job=%s guess=%s confidence=%.4f",
