@@ -546,3 +546,196 @@ pay through an automated accusation.
 ---
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
+
+## Capstone
+
+**What This Extends**
+
+This extends Provenance Guard, the system that scores submitted writing with a
+local model signal and a stylometry signal, maps the combined score to a
+human/unsure/AI label, supports appeals, and records an audit trail. The new
+capability is a durable asynchronous analysis path: `POST /jobs` stores work in
+PostgreSQL, returns a pollable job ID immediately, and a separate worker claims,
+scores, retries, and completes that work. The original synchronous `/submit`
+path remains available and is included in the regression criteria.
+
+**The Shape**
+
+I chose **Shape C — operational scaffolding**. The extension moves slow model
+work out of the request, uses PostgreSQL row locking so concurrent workers do
+not claim the same job, retries failed jobs with bounded backoff, recovers
+expired worker leases, and uses Redis for shared rate-limit counters.
+
+Out of scope: I did not add a second detector or change the model/stylometry
+scoring, did not rebuild the interface, and did not deploy a hosted copy. Those
+would each add a second project and make it harder to isolate whether the queue
+itself works.
+
+**Running It**
+
+This is **Path B — local with logs**. From a configured checkout, the complete
+start command is `./run_local.sh`; the service is then at
+`http://127.0.0.1:5000`. [RUNNING.md](RUNNING.md) gives the environment,
+one-time setup, verification request, polling step, and manual multi-terminal
+alternative.
+
+**Instrumentation**
+
+Every worker attempt appends one JSON object to `logs/run_records.jsonl` through
+`audit.py::log_run`. Each record names the UTC timestamp, job/creator/worker,
+attempt number, input, output (result or error/status), and measured
+`duration_ms`. Failures are records, not missing rows. PostgreSQL separately
+stores durable job state and lifecycle events; `logs/audit.jsonl` remains the
+original synchronous decision/appeal log.
+
+Ten entries from the measured after run are pasted below as text. Entries 2–4,
+6–8, and 10 show the deliberately failed path, including its final transition
+to `failed`.
+
+```jsonl
+{"timestamp":"2026-11-21T19:12:10+00:00","job_id":"1f435e8b-47a4-4e67-b34b-5ae757169c36","creator_id":"capstone-c2-1-f14e38f3-6b5a-4881-b577-260165b333ac","worker_id":"capstone-c2-worker-1","attempt":1,"input":{"text":"A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."},"output":{"status":"completed","model_score":0.3839,"style_score":0.4774,"confidence":0.4306,"guess":"unsure","label":"Our signals could not reliably determine how this text was written."},"duration_ms":1103.46}
+{"timestamp":"2026-11-21T19:12:10+00:00","job_id":"e1b4dce0-0c4b-4db9-878b-90b653aaa17f","creator_id":"capstone-c4-1-6f867f22-a289-43f1-8b55-c7bd6f170859","worker_id":"capstone-c4-worker-1-0","attempt":1,"input":{"text":"A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."},"output":{"status":"queued","error":"RuntimeError: forced failure"},"duration_ms":6.77}
+{"timestamp":"2026-11-21T19:12:10+00:00","job_id":"e1b4dce0-0c4b-4db9-878b-90b653aaa17f","creator_id":"capstone-c4-1-6f867f22-a289-43f1-8b55-c7bd6f170859","worker_id":"capstone-c4-worker-1-1","attempt":2,"input":{"text":"A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."},"output":{"status":"queued","error":"RuntimeError: forced failure"},"duration_ms":2.88}
+{"timestamp":"2026-11-21T19:12:10+00:00","job_id":"e1b4dce0-0c4b-4db9-878b-90b653aaa17f","creator_id":"capstone-c4-1-6f867f22-a289-43f1-8b55-c7bd6f170859","worker_id":"capstone-c4-worker-1-2","attempt":3,"input":{"text":"A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."},"output":{"status":"failed","error":"RuntimeError: forced failure"},"duration_ms":3.34}
+{"timestamp":"2026-11-21T19:12:10+00:00","job_id":"a9b28b7f-c245-40a4-92bc-2a17883b208b","creator_id":"capstone-c2-2-dcce83c6-6565-4d64-b5a7-084530dfd4e5","worker_id":"capstone-c2-worker-2","attempt":1,"input":{"text":"A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."},"output":{"status":"completed","model_score":0.3839,"style_score":0.4774,"confidence":0.4306,"guess":"unsure","label":"Our signals could not reliably determine how this text was written."},"duration_ms":35.77}
+{"timestamp":"2026-11-21T19:12:10+00:00","job_id":"92aae0d3-e7c5-40b2-8755-6a7ccae8cbbe","creator_id":"capstone-c4-2-6cad1c4b-a944-4efb-a7bb-c1faddf65f14","worker_id":"capstone-c4-worker-2-0","attempt":1,"input":{"text":"A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."},"output":{"status":"queued","error":"RuntimeError: forced failure"},"duration_ms":2.24}
+{"timestamp":"2026-11-21T19:12:10+00:00","job_id":"92aae0d3-e7c5-40b2-8755-6a7ccae8cbbe","creator_id":"capstone-c4-2-6cad1c4b-a944-4efb-a7bb-c1faddf65f14","worker_id":"capstone-c4-worker-2-1","attempt":2,"input":{"text":"A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."},"output":{"status":"queued","error":"RuntimeError: forced failure"},"duration_ms":2.25}
+{"timestamp":"2026-11-21T19:12:10+00:00","job_id":"92aae0d3-e7c5-40b2-8755-6a7ccae8cbbe","creator_id":"capstone-c4-2-6cad1c4b-a944-4efb-a7bb-c1faddf65f14","worker_id":"capstone-c4-worker-2-2","attempt":3,"input":{"text":"A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."},"output":{"status":"failed","error":"RuntimeError: forced failure"},"duration_ms":1.83}
+{"timestamp":"2026-11-21T19:12:10+00:00","job_id":"c9dc445a-9f70-48f3-861d-4d1c245f45ab","creator_id":"capstone-c2-3-1228403d-66aa-4383-a2e0-ec4631d78e1d","worker_id":"capstone-c2-worker-3","attempt":1,"input":{"text":"A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."},"output":{"status":"completed","model_score":0.3839,"style_score":0.4774,"confidence":0.4306,"guess":"unsure","label":"Our signals could not reliably determine how this text was written."},"duration_ms":41.2}
+{"timestamp":"2026-11-21T19:12:10+00:00","job_id":"8908d0c9-8b0a-4fd7-8054-3778e22396f0","creator_id":"capstone-c4-3-06090d83-50cf-443b-af24-107d29f16c55","worker_id":"capstone-c4-worker-3-0","attempt":1,"input":{"text":"A small river crossed the park behind the library. On clear mornings, neighbors stopped on the footbridge to watch ducks move through the reeds. The scene changed with the weather, but the path remained busy all year."},"output":{"status":"queued","error":"RuntimeError: forced failure"},"duration_ms":1.92}
+```
+
+The complete 22-entry evidence file is
+[`logs/run_records.jsonl`](logs/run_records.jsonl).
+
+**What It Costs**
+
+There is no per-request API spend: GPT-2 runs locally. I measured seconds of
+compute by warming the model once, then timing `worker.py::process_job` around
+the real model signal, style signal, database completion, and structured log
+write for ten separate jobs. The measured times were 0.0473, 0.0410, 0.0446,
+0.0401, 0.0458, 0.0393, 0.0447, 0.0424, 0.0341, and 0.0370 seconds. Their mean
+was **0.0416 seconds of warm local compute per run**. Model loading is a startup
+cost and is deliberately outside this steady-state per-run number; the first
+criterion-2 analysis after loading took 1.117 seconds end to end.
+
+At one run each for 100 people per day: `0.0416 seconds/run × 100 runs = 4.16
+seconds of local compute per day`, plus one model load whenever the worker
+restarts. The raw measurements are in `results/capstone_after.json` under
+`cost`.
+
+**Run Log and Verdicts**
+
+The before run used commit `a06a611`'s isolated runner against the system before
+structured worker logging. No settings changed between the three trials.
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. Valid work accepted promptly | 5/5 HTTP 202, complete handles, each under 500 ms | 5/5; max 243.80 ms | 5/5; max 2.99 ms | 5/5; max 2.56 ms | MET |
+| 2. Queued job completes | completed with all result fields under 60 s | completed, 1.147 s | completed, 0.038 s | completed, 0.042 s | MET |
+| 3. Concurrent claims are unique | 2/2 distinct jobs | 2/2 unique | 2/2 unique | 2/2 unique | MET |
+| 4. Failure is bounded and observable | failed after 3 attempts, generic public error, 3/3 structured logs | failed after 3; 0/3 logs | failed after 3; 0/3 logs | failed after 3; 0/3 logs | MISSED |
+| 5. Original `/submit` still works | HTTP 200, six response fields, matching audit row | 200; 1 audit row | 200; 1 audit row | 200; 1 audit row | MET |
+
+Verdict and diagnosis by criterion:
+
+1. **MET.** The route/database stage persisted all 15 requests and returned
+   pollable handles. The high first value is connection-pool startup, still
+   below the 500 ms target.
+2. **MET.** The worker stage completed all three real GPT-2 analyses with every
+   required result field and valid 0–1 scores.
+3. **MET.** PostgreSQL's `FOR UPDATE SKIP LOCKED` claim stage gave the two
+   simultaneous threads different jobs in every trial.
+4. **MISSED.** The retry stage correctly stopped at three attempts and hid the
+   raw exception, but the observability half was 0/3 in every trial. The cause
+   was `worker.py::process_job`: it only sent messages to the console and job
+   lifecycle fields to PostgreSQL. Neither path wrote the named input, output,
+   and elapsed duration required for a run record.
+5. **MET.** The original route, scoring, labeling, response, and audit path
+   remained intact in all three trials.
+
+Real trial-1 output below was produced by the named functions in
+`run_capstone.py`; the unabridged output is in
+[`results/capstone_before.json`](results/capstone_before.json).
+
+```json
+{"criterion_1":{"producer":"run_capstone.py::_criterion_1","http":202,"job_id":"6ab67976-d47f-4b0c-9e32-11c3c00d40ca","duration_ms":243.8,"status_get":200}}
+{"criterion_2":{"producer":"run_capstone.py::_criterion_2","status":"completed","duration_seconds":1.147,"confidence":0.4306,"guess":"unsure"}}
+{"criterion_3":{"producer":"run_capstone.py::_criterion_3","expected":["507ef68a-6145-4313-aef9-9d4a4b594885","eadb40e6-6e2f-4817-921b-b080dfa3979e"],"claimed":["eadb40e6-6e2f-4817-921b-b080dfa3979e","507ef68a-6145-4313-aef9-9d4a4b594885"],"errors":[]}}
+{"criterion_4":{"producer":"run_capstone.py::_criterion_4","status":"failed","attempts":3,"public_message":"Analysis could not be completed.","run_records":[]}}
+{"criterion_5":{"producer":"run_capstone.py::_criterion_5","http":200,"content_id":"664d93ab-dbd2-491f-b4cf-2721ea4a909f","confidence":0.4306,"guess":"unsure","audit_entries":1}}
+```
+
+**The Improvement**
+
+I made one change: each worker attempt now times itself and calls
+`audit.py::log_run` with its input and either its completed result or persisted
+failure. The diagnosis pointed directly at the worker because retries and the
+public failure response already behaved correctly; only durable attempt-level
+observability was absent.
+
+I reran all five criteria without changing their targets:
+
+| Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
+|---|---|---|---|---|---|
+| 1. Valid work accepted promptly | 5/5 HTTP 202, complete handles, each under 500 ms | 5/5; max 292.12 ms | 5/5; max 3.99 ms | 5/5; max 4.03 ms | MET |
+| 2. Queued job completes | completed with all result fields under 60 s | completed, 1.117 s | completed, 0.038 s | completed, 0.043 s | MET |
+| 3. Concurrent claims are unique | 2/2 distinct jobs | 2/2 unique | 2/2 unique | 2/2 unique | MET |
+| 4. Failure is bounded and observable | failed after 3 attempts, generic public error, 3/3 structured logs | failed after 3; 3/3 logs | failed after 3; 3/3 logs | failed after 3; 3/3 logs | MET |
+| 5. Original `/submit` still works | HTTP 200, six response fields, matching audit row | 200; 1 audit row | 200; 1 audit row | 200; 1 audit row | MET |
+
+| Measure | Before | After |
+|---|---:|---:|
+| Criteria met | 4/5 | 5/5 |
+| Failed attempts with complete structured records | 0/9 | 9/9 |
+| Criterion 4 | MISSED in 3/3 trials | MET in 3/3 trials |
+
+The change helped exactly the diagnosed issue: criterion 4 moved from 0/3 to
+3/3 logged attempts in every trial while the other four verdicts stayed MET.
+The full after evidence is in
+[`results/capstone_after.json`](results/capstone_after.json).
+
+**What's Still Broken**
+
+All five criteria are met after the improvement, but criterion 2's 60-second
+target was too loose for this machine: the slowest measured completion was
+1.147 seconds. I would tighten it to **2 seconds for a warm local worker** and
+separately track cold model-load time, rather than letting one target mix those
+two very different states.
+
+The structured log stores full submitted text because the required record must
+show what came in. In a real writing service that creates a privacy and disk
+retention risk; I would add access controls, a retention limit, and a documented
+redaction policy before accepting private writing. I stopped because this
+capstone scoped one measured improvement, and changing the evidence format in
+the same comparison would make the before/after result harder to interpret.
+
+If this were real and I had another unit, the first thing I would do is run
+multiple full analysis workers under concurrent load, not just concurrent claim
+threads. That would reveal whether CPU/model contention changes the completion
+target or makes additional workers slower instead of increasing throughput.
+
+**How I Used AI**
+
+**Moment 1**
+
+- *What I asked for:* I asked AI to update the existing repository against the
+  complete capstone brief and keep the work to one extension.
+- *What came back:* AI identified the already-built PostgreSQL queue, worker
+  leases/retries, and Redis counters as Shape C, and drafted five capstone
+  criteria around that boundary.
+- *What changed:* The old seven-criterion file was replaced with five capstone
+  criteria and committed before any capstone result file. The declared scope
+  excludes another detector, an interface rebuild, and hosting.
+
+**Moment 2**
+
+- *What I asked for:* I asked AI to implement a repeatable before/after harness
+  and ensure every conclusion was backed by saved real output.
+- *What came back:* The first harness run exposed fixture contamination: queued
+  jobs from criterion 1 were being claimed by later criteria. AI identified the
+  mismatch between expected and claimed IDs.
+- *What changed:* That invalid, uncommitted output was deleted; each criterion's
+  fixtures were isolated and the baseline was rerun. The corrected evidence
+  exposed one real miss—missing worker run records—which became the measured
+  improvement.

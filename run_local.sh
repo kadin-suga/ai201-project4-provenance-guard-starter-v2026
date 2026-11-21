@@ -32,4 +32,4 @@ trap cleanup EXIT INT TERM
 echo "Provenance Guard is running at http://127.0.0.1:5000"
 echo "Press Ctrl-C to stop the API and worker; PostgreSQL and Redis remain running."
 
-wait -n "$api_pid" "$worker_pid"
+wait "$api_pid"
