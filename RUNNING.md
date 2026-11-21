@@ -1,5 +1,39 @@
 # Running Provenance Guard
 
+## Capstone run path — Path B (local with logs)
+
+The capstone uses Path B. It is a local web service, started outside the editor,
+at `http://127.0.0.1:5000`. From the repository root, the complete start command
+is:
+
+```bash
+./run_local.sh
+```
+
+The command starts the existing Docker Compose PostgreSQL and Redis services,
+then starts a Gunicorn API process and one queue worker. Stop the API and worker
+with Ctrl-C. PostgreSQL and Redis stay up so queued work and rate-limit counters
+survive an application restart.
+
+The required environment is macOS or Linux with Docker Desktop/Engine running,
+Python 3.11–3.13, the repository's `.venv` installed from `requirements.txt`,
+the local GPT-2 files downloaded by `python detector.py`, and a filled `.env`
+based on `.example.env`. No API key or hosted model is used. The `.env` must set
+`POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `DATABASE_URL`; the
+checked-in example also sets the Redis URL and queue timing defaults.
+
+Verify the run path from a second terminal:
+
+```bash
+curl -X POST http://127.0.0.1:5000/jobs \
+  -H "Content-Type: application/json" \
+  -d '{"creator_id":"running-check","text":"A complete paragraph goes here so the local detector has enough words to analyze the request."}'
+```
+
+Poll the returned `status_url` until it says `completed`. Worker attempt records
+are written to `logs/run_records.jsonl`; synchronous decisions remain in
+`logs/audit.jsonl`.
+
 Everything about how the starter works.
 
 This is a **web service**. It runs on your machine and you talk to it with
